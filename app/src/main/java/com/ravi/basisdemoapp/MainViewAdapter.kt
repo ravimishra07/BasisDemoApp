@@ -7,7 +7,7 @@ import android.widget.TextView
 import com.ravi.basisdemoapp.card.ViewAdapter
 import com.ravi.basisdemoapp.model.SubData
 
-class MainViewAdapter(private val list:ArrayList<SubData>,context:Context):ViewAdapter() {
+class MainViewAdapter(private val list:List<SubData>,context:Context):ViewAdapter() {
 
     var layoutInflater: LayoutInflater = LayoutInflater.from(context)
 

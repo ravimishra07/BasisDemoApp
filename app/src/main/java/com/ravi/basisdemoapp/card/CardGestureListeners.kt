@@ -1,6 +1,6 @@
 package com.ravi.basisdemoapp.card
 
-interface CardInterfaceListeners {
+interface CardGestureListeners {
     fun onLeftSwipe(position: Int, model: Any)
     fun onUpSwipe(position: Int, model: Any)
     fun onDownSwipe(position: Int, model: Any)

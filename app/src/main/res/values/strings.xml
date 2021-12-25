@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BasisDemoApp</string>
+    <string name="end_of_stack">End of stack</string>
 </resources>
