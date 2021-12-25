@@ -1,4 +1,4 @@
-package com.ravi.basisdemoapp
+package com.ravi.basisdemoapp.service
 
 import com.ravi.basisdemoapp.service.ApiInterface
 

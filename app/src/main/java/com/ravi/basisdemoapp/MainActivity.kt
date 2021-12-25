@@ -2,11 +2,12 @@ package com.ravi.basisdemoapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ravi.basisdemoapp.model.SubData
+import com.ravi.basisdemoapp.service.Repository
+import com.ravi.basisdemoapp.service.RetrofitClient
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign

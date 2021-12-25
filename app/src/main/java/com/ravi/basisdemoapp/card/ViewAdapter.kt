@@ -6,6 +6,7 @@ import java.text.FieldPosition
 abstract class ViewAdapter {
     abstract  fun getItem(position: Int):Any
     abstract  fun getView(position: Int):View
+    abstract fun getCount(): Int
 
     var dataListeners:DataListeners?=null
     var actionListeners:ActionListeners?=null

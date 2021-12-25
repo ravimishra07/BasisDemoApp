@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.ravi.basisdemoapp.R
 
 class CardContainer(context:Context,attrs:AttributeSet?) :FrameLayout(context, attrs){
    var cardListeners:CardInterfaceListeners?=null
@@ -19,7 +20,7 @@ class CardContainer(context:Context,attrs:AttributeSet?) :FrameLayout(context, a
     val marginTop = 10.px
     val maxSta = 5
 
-    private var mainContainer: FrameLayout?=null
+    private var mainView: FrameLayout?=null
     private var emptyContainer: FrameLayout? = null
     private var draggableSurfaceLayout: FrameLayout? = null
 
@@ -51,7 +52,7 @@ class CardContainer(context:Context,attrs:AttributeSet?) :FrameLayout(context, a
 
     fun setEmptyView(v:View){
         emptyContainer?.visibility = VISIBLE
-        mainContainer?.visibility = GONE
+        mainView?.visibility = GONE
 
        if(v.parent!=null){
            (v as ViewGroup)?.removeView(v)
@@ -60,6 +61,10 @@ class CardContainer(context:Context,attrs:AttributeSet?) :FrameLayout(context, a
        }
     }
     private fun setUpSurface(){
-        //val viewMain = LayoutInflater.from(context).inflate(R.id)
+        val viewMain = LayoutInflater.from(context).inflate(R.layout.card_view_container,null)
+        mainView = viewMain.findViewById(R.id.mainView)
+        emptyContainer = viewMain.findViewById(R.id.emptyView)
+        draggableSurfaceLayout = viewMain.findViewById(R.id.draggableView)
+        addView(viewMain)
     }
 }

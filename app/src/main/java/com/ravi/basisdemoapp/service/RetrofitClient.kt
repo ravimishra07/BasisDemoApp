@@ -1,7 +1,5 @@
-package com.ravi.basisdemoapp
+package com.ravi.basisdemoapp.service
 
-import com.ravi.basisdemoapp.service.ApiInterface
-import com.ravi.basisdemoapp.service.JsonCleanConverter
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 
