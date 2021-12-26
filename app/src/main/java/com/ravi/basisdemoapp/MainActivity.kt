@@ -121,9 +121,18 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
         } else {
             llEmptyStack.visibility = GONE
         }
-        if (progressIndicator.progress <= position && position > 0) {
-            progressIndicator.progress = position + 1
-        }
+val modelData = model as SubData
+      //  if(position>0){
+            progressIndicator.progress = modelData.id//position + 1
+//            if (progressIndicator.progress < position){
+//                progressIndicator.progress = position + 1
+//            }else{
+//                progressIndicator.progress = position - 1
+//            }
+
+//        if (progressIndicator.progress <= position && position > 0) {
+//            progressIndicator.progress = position + 1
+//        }
 
 
     }

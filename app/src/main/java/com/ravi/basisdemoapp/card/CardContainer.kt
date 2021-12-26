@@ -124,13 +124,13 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                 }
                val lastView =  viewArray.last()
                 if(isPrev==true){
-                    presentCardAnim(lastView, 200)
+                    presentCardAnim(lastView)
                 }
 
                 //mainView?.pulseOnlyUp()
                 count = viewArray.size
                 setCardForAnimation()
-                cardGestureListeners?.onItemShow(swipeIndex, it.getItem(swipeIndex))
+              //  cardGestureListeners?.onItemShow(swipeIndex, it.getItem(swipeIndex))
                 fixedArray = viewArray
             }
         }
@@ -398,7 +398,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                 }
             })
     }
-    private fun presentCardAnim(card: View, yPos: Int) {
+    private fun presentCardAnim(card: View) {
         card.visibility = VISIBLE
         val animate = TranslateAnimation(
             0F,  // fromXDelta
@@ -409,6 +409,15 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         animate.duration = 300
         animate.fillAfter = true
         card.startAnimation(animate)
+        viewAdapter?.let {
+//            if (it.getCount() > swipeIndex) {
+                cardGestureListeners?.onItemShow(
+                    viewArray.size,
+                    it.getItem(lastViewIndex-1)
+                )
+//            }
+        }
+
     }
 
 
