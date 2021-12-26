@@ -10,7 +10,7 @@
         android:id="@+id/card"
         android:layout_width="0dp"
         android:layout_height="300dp"
-        app:cardCornerRadius="2dp"
+        app:cardCornerRadius="8dp"
         app:cardElevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

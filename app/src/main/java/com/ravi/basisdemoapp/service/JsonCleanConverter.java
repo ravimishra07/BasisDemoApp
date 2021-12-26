@@ -87,6 +87,8 @@ public class JsonCleanConverter extends Converter.Factory {
         @Override
         public T convert(ResponseBody value) throws IOException {
             String dirty = value.string();
+
+            /** here we get raw response and remove the slash*/
             String clean = dirty.replace("/", "");
 
             try {

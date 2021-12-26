@@ -9,32 +9,23 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.view.animation.TranslateAnimation
 import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import androidx.core.view.contains
 import com.ravi.basisdemoapp.R
-import android.view.animation.TranslateAnimation
-
-
-
 
 class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs),
-    ViewAdapter.DataListeners,
     ViewAdapter.ActionListeners,
     View.OnTouchListener {
+
     var cardGestureListeners: CardGestureListeners? = null
     fun setActionListeners(cardGestureListeners: CardGestureListeners) {
         this.cardGestureListeners = cardGestureListeners
     }
 
     var viewAdapter: ViewAdapter? = null
-
-    var margin = 0.px
-    var marginTop = 0.px
-
     private var mainView: FrameLayout? = null
-
-    // private var emptyContainer: FrameLayout? = null
     private var draggableSurfaceLayout: FrameLayout? = null
 
     private var rightBoundary = 0f
@@ -52,7 +43,6 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
     private var dX = 0f
     private var dY = 0f
     private var resetX = 0f
-    private var resetY = 0f
     private var centerY = 0f
     private val cardDegreesForTransform = 40.0f
     private var isFirstTimeMove = false
@@ -60,22 +50,24 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
     private var lastViewIndex = 0
     private var downSwipeCount = 0
 
-
     private var viewArray: ArrayList<View> = arrayListOf()
     private var lastSwipedView: View? = null
     private var fixedArray: ArrayList<View> = arrayListOf()
-    var maxValue = 0;
+    private var maxValue = 0;
 
     init {
         screenHeight = Resources.getSystem().displayMetrics.heightPixels
         screenWidth = Resources.getSystem().displayMetrics.widthPixels
-        leftBoundary = screenWidth * (0.17f)
-        rightBoundary = screenWidth * (0.83f)
+
+        /** created boundaries to determine swipe events*/
+        leftBoundary = screenWidth * (0.25f)
+        rightBoundary = screenWidth * (0.75f)
         downBoundary = screenHeight * (0.75f)
         setUpSurface()
 
     }
 
+    /** inflated card view */
     private fun setUpSurface() {
         val viewMain = LayoutInflater.from(context).inflate(R.layout.card_view_container, null)
         mainView = viewMain.findViewById(R.id.mainView)
@@ -84,10 +76,8 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
     }
 
     fun setAdapter(viewAdapter: ViewAdapter) {
-
         reset()
         this.viewAdapter = viewAdapter
-        this.viewAdapter?.dataListeners = this
         this.viewAdapter?.actionListeners = this
 
         if (viewAdapter.getCount() > 0) {
@@ -95,14 +85,17 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         } else {
             return
         }
-        centerY =mainView?.y ?: 0f
-        maxValue = viewAdapter.getCount()
+        centerY = mainView?.y ?: 0f
+        viewAdapter.getCount().also { maxValue = it }
         formCards(1)
     }
 
+    /**
+     * @param lastIndex: top most index which the user will see
+     * @param isPrev: to tell if user has swiped down and prev card will be shown
+     */
     private fun formCards(lastIndex: Int, isPrev: Boolean? = false) {
-        // mainView?.removeAllViews()
-        // swipeIndex = lastIndex
+
         if (lastIndex > 0) {
             viewAdapter?.let {
                 val size = it.getCount() ?: 0
@@ -116,33 +109,34 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                     card.elevation = (size + 1 - i).toFloat()
 
                     holder.addView(it.getView(i - 1))
+                    /**form cards and appedn in array to use as data source*/
                     viewArray.add(childCard)
                 }
-                for (view in viewArray) {
 
+                // appending views in our main frame layout
+                for (view in viewArray) {
                     mainView?.addView(view)
                 }
-               val lastView =  viewArray.last()
-                if(isPrev==true){
-                    presentCardAnim(lastView)
-                }
+                val lastView = viewArray.last()
 
-                //mainView?.pulseOnlyUp()
+                // here we check is we should show top card with animation or not
+                if (isPrev == true) {
+                    downSwipeCardPresentAnimation(lastView)
+                }
                 count = viewArray.size
                 setCardForAnimation()
-              //  cardGestureListeners?.onItemShow(swipeIndex, it.getItem(swipeIndex))
                 fixedArray = viewArray
             }
         }
 
     }
 
+    /** sets touch listener on the top most view */
     private fun setCardForAnimation() {
         if (viewArray.isNotEmpty()) {
             viewArray[viewArray.size - 1].setOnTouchListener(this)
         } else {
             mainView?.visibility = View.GONE
-            cardGestureListeners?.onSwipeCompleted()
         }
     }
 
@@ -153,32 +147,15 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         mainView?.removeAllViews()
     }
 
-    override fun notifyAppendData() {
-        appendData()
-        setCardForAnimation()
-    }
 
-    private fun appendData() {
-        for (i in 1 until viewArray.size) {
-            val childCard = LayoutInflater.from(context).inflate(R.layout.card_position, null)
-            val holder = childCard.findViewById<FrameLayout>(R.id.frame)
-            val card = childCard.findViewById<CardView>(R.id.card)
-            card.elevation = 1.toFloat()
-            holder.addView(viewAdapter?.getView(i))
-            viewArray.add(0, childCard)
-            mainView?.addView(childCard, 0)
-            count++
-        }
-    }
-
+    /** moves the view to the right and dismiss after it has moved beyond the right boundary*/
     override fun right() {
         if (viewArray.isNotEmpty()) {
             if (viewArray[viewArray.size - 1].animation?.hasEnded() == false)
                 return
             dismissCard(viewArray[viewArray.size - 1], (screenWidth * 2), true)
             viewAdapter?.let {
-                if (it.getCount() > swipeIndex) {
-                    //  cardGestureListeners?.righ(swipeIndex, it.getItem(swipeIndex))
+                if (it.getCount() > swipeIndex) { // updating counts
                     swipeIndex++
                     lastViewIndex++
                 }
@@ -186,18 +163,14 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         }
     }
 
-    override fun up() {
-
-    }
-
+    /** moves the view to the left and dismiss after it has moved beyond the left boundary*/
     override fun left() {
         if (viewArray.isNotEmpty()) {
             if (viewArray[viewArray.size - 1].animation?.hasEnded() == false)
                 return
             dismissCard(viewArray[viewArray.size - 1], -(screenWidth * 2), true)
             viewAdapter?.let {
-                if (it.getCount() > swipeIndex) {
-                    //  cardGestureListeners?.righ(swipeIndex, it.getItem(swipeIndex))
+                if (it.getCount() > swipeIndex) {// updating counts
                     swipeIndex++
                     lastViewIndex++
                 }
@@ -205,22 +178,27 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         }
     }
 
-    override fun down() {
-
-    }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         if (v != null)
             when (event?.action) {
+                /**
+                 *  MotionEvent.ACTION_DOWN: when user first tap the screen we register it and save in our variable(oldX and oldY)
+                 *              we save isFirstTimeMove as true
+                 */
                 MotionEvent.ACTION_DOWN -> {
                     isFirstTimeMove = mainView?.contains(v) == true
                     oldX = event.x
                     oldY = event.y
                     return true
                 }
+                /**
+                 * @MotionEvent.ACTION_UP: when user removes touch, we determine if the user has swiped right, left or down, we determine the operation
+                 */
                 MotionEvent.ACTION_UP -> {
                     isFirstTimeMove = false
                     when {
+                        //if swiped left, dismiss the view post animation
                         isCardAtLeft(v) -> {
                             downSwipeCount = 0
                             dismissCard(v, -(screenWidth * 2), false)
@@ -231,6 +209,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                                 }
                             }
                         }
+                        //if swiped right, dismiss the view post animation
                         isCardAtRight(v) -> {
                             downSwipeCount = 0
                             dismissCard(v, (screenWidth * 2), false)
@@ -241,20 +220,14 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                                 }
                             }
                         }
-                        isCardDown(v) -> {
-//                            lastSwipedView?.let {  lastView ->
-//                                viewArray.add(lastView)
-//                            }
+                        //if swiped down, reset the adapter data and populate subData with only desired range
+                        isCardDown() -> {
                             downSwipeCount++
-                            // if(swipeIndex>0) {
-
-
                             if (downSwipeCount > 1) {
                                 lastViewIndex--
                             } else {
                                 lastViewIndex = swipeIndex
                             }
-
                             if (lastViewIndex > 0) {
                                 reset()
                                 formCards(lastViewIndex, true)
@@ -262,9 +235,9 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                             } else {
                                 resetCardPosition(v)
                             }
-
                         }
 
+                        // reposition dragged view
                         else -> {
                             downSwipeCount = 0
                             resetCardPosition(v)
@@ -272,7 +245,10 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                     }
                     return true
                 }
-
+                /**
+                 *  MotionEvent.ACTION_MOVE: we continuously update our newX and newY as the user drags the screen
+                 *                  When user drags down slight movement of 25 px was allowed(to make view look flexible)
+                 */
                 MotionEvent.ACTION_MOVE -> {
                     newX = event.x
                     newY = event.y.plus(if (isFirstTimeMove) mainView!!.y else 0f)
@@ -290,9 +266,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                             v.y = v.y.plus(dY)
                             v.x = v.x.plus(dX)
                         }
-
                     }
-
                     return true
                 }
                 else -> return super.onTouchEvent(event)
@@ -304,20 +278,9 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         view?.let {
             resetCard(it)
         }
-
-        viewAdapter?.let {
-            if (swipeIndex >= 0) {
-                if (it.getCount() > swipeIndex) {
-                    cardGestureListeners?.onSwipeCancel(
-                        swipeIndex,
-                        it.getItem(swipeIndex)
-                    )
-                }
-            }
-
-        }
     }
 
+    /** rotating the card while being dragged */
     private fun setCardRotation(card: View, posX: Float) {
         val rotation = (cardDegreesForTransform * (posX)) / screenWidth
         val halfCardHeight = (card.height / 2)
@@ -342,17 +305,18 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         return false
     }
 
-    private fun isCardDown(view: View?): Boolean {
-
-//        if (view != null) {
-//            return view.y + view.height / 2 > downBoundary
-//        }
+    private fun isCardDown(): Boolean {
         val isDown = isCardMovedDown
         isCardMovedDown = false
         return isDown
     }
 
+    /**
+     * @param card: view which is to dismissed post animation
+     * @param xPos: horizontal translation (-ve for left and +ve right)
+     */
     private fun dismissCard(card: View, xPos: Int, rotate: Boolean) {
+
         card.animate()
             .x(xPos.toFloat())
             .y(0F)
@@ -384,42 +348,34 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                                     )
                             }
                             setCardForAnimation()
-                            //  reOrderMargins()
                         }
                     }
                 }
 
-                override fun onAnimationCancel(animation: Animator?) {
-
-                }
-
-                override fun onAnimationRepeat(animation: Animator?) {
-
-                }
+                override fun onAnimationCancel(animation: Animator?) {}
+                override fun onAnimationRepeat(animation: Animator?) {}
             })
     }
-    private fun presentCardAnim(card: View) {
+
+    /** animate card to transform from top to current position with animation*/
+    private fun downSwipeCardPresentAnimation(card: View) {
         card.visibility = VISIBLE
         val animate = TranslateAnimation(
             0F,  // fromXDelta
             0F,  // toXDelta
-            -screenHeight.toFloat()/2,  // fromYDelta
+            -screenHeight.toFloat() / 2,
             centerY
-        ) // toYDelta
+        )
         animate.duration = 300
         animate.fillAfter = true
         card.startAnimation(animate)
         viewAdapter?.let {
-//            if (it.getCount() > swipeIndex) {
-                cardGestureListeners?.onItemShow(
-                    viewArray.size,
-                    it.getItem(lastViewIndex-1)
-                )
-//            }
+            cardGestureListeners?.onItemShow(
+                viewArray.size,
+                it.getItem(lastViewIndex - 1)
+            )
         }
-
     }
-
 
     private fun resetCard(card: View) {
         card.animate()
