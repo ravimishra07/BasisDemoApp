@@ -13,6 +13,10 @@ import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import androidx.core.view.contains
 import com.ravi.basisdemoapp.R
+import android.view.animation.TranslateAnimation
+
+
+
 
 class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs),
     ViewAdapter.DataListeners,
@@ -49,6 +53,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
     private var dY = 0f
     private var resetX = 0f
     private var resetY = 0f
+    private var centerY = 0f
     private val cardDegreesForTransform = 40.0f
     private var isFirstTimeMove = false
     private var isCardMovedDown = false
@@ -59,6 +64,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
     private var viewArray: ArrayList<View> = arrayListOf()
     private var lastSwipedView: View? = null
     private var fixedArray: ArrayList<View> = arrayListOf()
+    var maxValue = 0;
 
     init {
         screenHeight = Resources.getSystem().displayMetrics.heightPixels
@@ -89,38 +95,45 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         } else {
             return
         }
+        centerY =mainView?.y ?: 0f
+        maxValue = viewAdapter.getCount()
         formCards(1)
     }
 
-    private fun formCards(lastIndex:Int) {
+    private fun formCards(lastIndex: Int, isPrev: Boolean? = false) {
         // mainView?.removeAllViews()
-       // swipeIndex = lastIndex
-       if(lastIndex>0) {
-           viewAdapter?.let {
-               val size = it.getCount() ?: 0
+        // swipeIndex = lastIndex
+        if (lastIndex > 0) {
+            viewAdapter?.let {
+                val size = it.getCount() ?: 0
 
-               for (i in size downTo lastIndex) {
-                   val childCard =
-                       LayoutInflater.from(context).inflate(R.layout.card_position, null)
-                   val holder = childCard.findViewById<FrameLayout>(R.id.frame)
-                   val card = childCard.findViewById<CardView>(R.id.card)
+                for (i in size downTo lastIndex) {
+                    val childCard =
+                        LayoutInflater.from(context).inflate(R.layout.card_position, null)
+                    val holder = childCard.findViewById<FrameLayout>(R.id.frame)
+                    val card = childCard.findViewById<CardView>(R.id.card)
 
-                   card.elevation = (size + 1 - i).toFloat()
+                    card.elevation = (size + 1 - i).toFloat()
 
-                   holder.addView(it.getView(i - 1))
-                   viewArray.add(childCard)
-               }
-               for (view in viewArray) {
+                    holder.addView(it.getView(i - 1))
+                    viewArray.add(childCard)
+                }
+                for (view in viewArray) {
 
-                   mainView?.addView(view)
-               }
-               //mainView?.pulseOnlyUp()
-               count = viewArray.size
-               setCardForAnimation()
-               cardGestureListeners?.onItemShow(swipeIndex, it.getItem(swipeIndex))
-               fixedArray = viewArray
-           }
-       }
+                    mainView?.addView(view)
+                }
+               val lastView =  viewArray.last()
+                if(isPrev==true){
+                    presentCardAnim(lastView, 200)
+                }
+
+                //mainView?.pulseOnlyUp()
+                count = viewArray.size
+                setCardForAnimation()
+                cardGestureListeners?.onItemShow(swipeIndex, it.getItem(swipeIndex))
+                fixedArray = viewArray
+            }
+        }
 
     }
 
@@ -209,6 +222,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                     isFirstTimeMove = false
                     when {
                         isCardAtLeft(v) -> {
+                            downSwipeCount = 0
                             dismissCard(v, -(screenWidth * 2), false)
                             viewAdapter?.let {
                                 if (it.getCount() > swipeIndex) {
@@ -218,6 +232,7 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                             }
                         }
                         isCardAtRight(v) -> {
+                            downSwipeCount = 0
                             dismissCard(v, (screenWidth * 2), false)
                             viewAdapter?.let {
                                 if (it.getCount() > swipeIndex) {
@@ -230,17 +245,28 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
 //                            lastSwipedView?.let {  lastView ->
 //                                viewArray.add(lastView)
 //                            }
+                            downSwipeCount++
+                            // if(swipeIndex>0) {
 
-                            if(swipeIndex>0) {
-                               lastViewIndex = fixedArray.size - 1 - swipeIndex
+
+                            if (downSwipeCount > 1) {
+                                lastViewIndex--
+                            } else {
+                                lastViewIndex = swipeIndex
+                            }
+
+                            if (lastViewIndex > 0) {
                                 reset()
-                                formCards(lastViewIndex)
+                                formCards(lastViewIndex, true)
                                 setCardForAnimation()
+                            } else {
+                                resetCardPosition(v)
                             }
 
                         }
 
                         else -> {
+                            downSwipeCount = 0
                             resetCardPosition(v)
                         }
                     }
@@ -257,9 +283,14 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                     if (newY < oldY) {
                         v.y = v.y.plus(dY)
                         v.x = v.x.plus(dX)
-
                     } else {
-                        isCardMovedDown = true
+                        if ((newY - oldY) > 25) {
+                            isCardMovedDown = true
+                        } else {
+                            v.y = v.y.plus(dY)
+                            v.x = v.x.plus(dX)
+                        }
+
                     }
 
                     return true
@@ -367,6 +398,19 @@ class CardContainer(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                 }
             })
     }
+    private fun presentCardAnim(card: View, yPos: Int) {
+        card.visibility = VISIBLE
+        val animate = TranslateAnimation(
+            0F,  // fromXDelta
+            0F,  // toXDelta
+            -screenHeight.toFloat()/2,  // fromYDelta
+            centerY
+        ) // toYDelta
+        animate.duration = 300
+        animate.fillAfter = true
+        card.startAnimation(animate)
+    }
+
 
     private fun resetCard(card: View) {
         card.animate()
