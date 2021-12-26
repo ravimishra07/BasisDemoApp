@@ -1,10 +1,18 @@
 package com.ravi.basisdemoapp
 
-import androidx.appcompat.app.AppCompatActivity
+import android.opengl.Visibility
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.ravi.basisdemoapp.card.CardContainer
 import com.ravi.basisdemoapp.card.CardGestureListeners
 import com.ravi.basisdemoapp.card.px
@@ -17,26 +25,50 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 
-class MainActivity : AppCompatActivity(), CardGestureListeners {
+class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickListener {
     private lateinit var viewModel: MainViewModel
     private val compositeDisposable = CompositeDisposable()
-  // private lateinit var recyclerView:RecyclerView
+    // private lateinit var recyclerView:RecyclerView
 
     lateinit var cardContainer: CardContainer
-    lateinit var adapter: MainViewAdapter
+     var adapter: MainViewAdapter?=null
+    lateinit var progressBar: ProgressBar
+    lateinit var ivPrev: ImageView
+    lateinit var ivNext: ImageView
+    lateinit var ivReStart: ImageView
+    lateinit var ivEmpty: ImageView
+    lateinit var progressIndicator: LinearProgressIndicator
+
     private var modelList = emptyList<SubData>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-       // recyclerView = findViewById(R.id.recyclerView)
+        // recyclerView = findViewById(R.id.recyclerView)
         cardContainer = findViewById(R.id.cardContainer)
+        progressBar = findViewById(R.id.progress_bar)
+
+        ivPrev = findViewById(R.id.iv_prev)
+        ivReStart = findViewById(R.id.iv_restart)
+        ivNext = findViewById(R.id.iv_next)
+        progressIndicator = findViewById(R.id.progress_view)
+        ivEmpty = findViewById(R.id.iv_empty_stack)
+
+        ivPrev.setOnClickListener(this)
+        ivNext.setOnClickListener(this)
+        ivReStart.setOnClickListener(this)
+
         cardContainer.setActionListeners(this)
+
+        progressBar.visibility = VISIBLE
         /*Customization*/
-        cardContainer.maxSize = 3
-        cardContainer.marginTop = 13.px
+        cardContainer.maxSize = 5
+        cardContainer.marginTop = 0.px
         cardContainer.margin = 20.px
+
+        cardContainer.setEmptyView(generateEmptyView())
+
         val repo = Repository(RetrofitClient.api)
         val vmFactory = MainViewModelFactory(repo)
         viewModel = ViewModelProvider(this, vmFactory)[MainViewModel::class.java]
@@ -50,17 +82,26 @@ class MainActivity : AppCompatActivity(), CardGestureListeners {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onSuccess = { userDataList ->
+                    progressBar.visibility = GONE
                     initRecyclerView(userDataList.data)
+                    progressIndicator.max = userDataList.data.size
+                    progressIndicator.progress = 0
+                    progressIndicator.visibility = VISIBLE
 
                 },
-                onError = { e ->  }
+                onError = { e ->
+                    progressBar.visibility = GONE
+                    Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show()
+                }
             )
     }
 
     private fun initRecyclerView(subDataList: List<SubData>) {
         modelList = subDataList
         adapter = MainViewAdapter(modelList, this)
-        cardContainer.setAdapter(adapter)
+        adapter?.let {
+            cardContainer.setAdapter(it)
+        }
 
 
 
@@ -70,39 +111,62 @@ class MainActivity : AppCompatActivity(), CardGestureListeners {
 //            adapter = RecyclerViewAdapter(userDataList)
 //        }
     }
+
     override fun onStop() {
         super.onStop()
         compositeDisposable.dispose()
     }
+
     private fun generateEmptyView(): View {
         return LayoutInflater.from(this).inflate(R.layout.end_view, null)
     }
 
-    override fun onLeftSwipe(position: Int, model: Any) {
-    }
-
-    override fun onUpSwipe(position: Int, model: Any) {
-        
-    }
-
-    override fun onDownSwipe(position: Int, model: Any) {
-        
-    }
-
-    override fun onRightSwipe(position: Int, model: Any) {
-        
-    }
-
     override fun onItemShow(position: Int, model: Any) {
-        
+        Log.v("onItemShow","$position pos")
+        if(modelList.size==position+1){
+            ivEmpty.visibility = VISIBLE
+        }else{
+            ivEmpty.visibility = GONE
+        }
+        if(progressIndicator.progress<=position&&position>0){
+            progressIndicator.progress = position+1
+        }
+
+
     }
 
     override fun onSwipeCancel(position: Int, model: Any) {
-        
+
+    }
+    override fun onSwipeCompleted() {
+
     }
 
-    override fun onSwipeCompleted() {
-        
+    override fun onClick(v: View?) {
+        when(v?.id){
+            R.id.iv_prev->{
+
+                progressIndicator.progress = (progressIndicator.progress+1)
+                adapter?.left()
+            }
+
+            R.id.iv_next->{
+                progressIndicator.progress = (progressIndicator.progress+1)
+                adapter?.right()
+            }
+
+            R.id.iv_restart->{
+               // it.pulse()
+               // modelList.shuffle()
+
+                adapter = MainViewAdapter(modelList, this)
+                adapter?.let{
+                    cardContainer.setAdapter(it)
+                    progressIndicator.progress = 0
+                }
+
+            }
+        }
     }
 
 }
