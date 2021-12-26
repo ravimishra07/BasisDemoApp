@@ -1,43 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/teal_700"
     android:padding="8dp">
 
-    <ImageView
-        android:id="@+id/iv_empty_stack"
-        android:layout_width="150dp"
+    <LinearLayout
+        android:id="@+id/ll_empty_stack"
+        android:layout_width="250dp"
         android:layout_height="150dp"
-        android:src="@drawable/empty_box"
+        android:orientation="vertical"
+        android:gravity="center"
         android:visibility="gone"
-
         app:layout_constraintBottom_toBottomOf="@+id/cardContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_empty_stack"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/empty_box" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No more cards left!"
+            android:textColor="@color/white"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            />
+    </LinearLayout>
 
     <com.ravi.basisdemoapp.card.CardContainer
         android:id="@+id/cardContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/ll_seekbar"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-
         android:indeterminateTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintTop_toTopOf="parent"
 
         />
 
@@ -45,12 +61,11 @@
         android:id="@+id/ll_seekbar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:orientation="horizontal"
         android:layout_marginBottom="12dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/ll_bottom_buttons"
-        >
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_view"
@@ -58,62 +73,62 @@
             android:layout_height="12dp"
             android:indeterminate="false"
             android:progress="0"
-            app:trackThickness="10dp"
-            app:trackCornerRadius="5dp"
             android:visibility="gone"
-            />
+            app:trackCornerRadius="5dp"
+            app:trackThickness="10dp" />
 
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/ll_bottom_buttons"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:orientation="horizontal"
         android:weightSum="3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        >
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
         <ImageView
             android:id="@+id/iv_prev"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_prev"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true"
+            android:src="@drawable/ic_prev" />
+
         <ImageView
             android:id="@+id/iv_restart"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_restart"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            />
+            android:src="@drawable/ic_restart" />
+
         <ImageView
             android:id="@+id/iv_next"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/ic_next"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            />
+            android:src="@drawable/ic_next" />
     </LinearLayout>
 
 
-<!--    <androidx.recyclerview.widget.RecyclerView-->
-<!--        android:id="@+id/recyclerView"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:layout_constraintVertical_bias="0.6" />-->
+    <!--    <androidx.recyclerview.widget.RecyclerView-->
+    <!--        android:id="@+id/recyclerView"-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height="0dp"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent"-->
+    <!--        app:layout_constraintVertical_bias="0.6" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,6 +1,5 @@
 package com.ravi.basisdemoapp
 
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +7,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.ravi.basisdemoapp.card.CardContainer
 import com.ravi.basisdemoapp.card.CardGestureListeners
-import com.ravi.basisdemoapp.card.px
 import com.ravi.basisdemoapp.model.SubData
 import com.ravi.basisdemoapp.service.Repository
 import com.ravi.basisdemoapp.service.RetrofitClient
@@ -31,12 +30,13 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
     // private lateinit var recyclerView:RecyclerView
 
     lateinit var cardContainer: CardContainer
-     var adapter: MainViewAdapter?=null
+    var adapter: MainViewAdapter? = null
     lateinit var progressBar: ProgressBar
     lateinit var ivPrev: ImageView
     lateinit var ivNext: ImageView
     lateinit var ivReStart: ImageView
-    lateinit var ivEmpty: ImageView
+    lateinit var llEmptyStack: LinearLayout
+
     lateinit var progressIndicator: LinearProgressIndicator
 
     private var modelList = emptyList<SubData>()
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
         ivReStart = findViewById(R.id.iv_restart)
         ivNext = findViewById(R.id.iv_next)
         progressIndicator = findViewById(R.id.progress_view)
-        ivEmpty = findViewById(R.id.iv_empty_stack)
+        llEmptyStack = findViewById(R.id.ll_empty_stack)
 
         ivPrev.setOnClickListener(this)
         ivNext.setOnClickListener(this)
@@ -62,12 +62,6 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
         cardContainer.setActionListeners(this)
 
         progressBar.visibility = VISIBLE
-        /*Customization*/
-        cardContainer.maxSize = 5
-        cardContainer.marginTop = 0.px
-        cardContainer.margin = 20.px
-
-        cardContainer.setEmptyView(generateEmptyView())
 
         val repo = Repository(RetrofitClient.api)
         val vmFactory = MainViewModelFactory(repo)
@@ -104,7 +98,6 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
         }
 
 
-
 //       recyclerView.apply {
 //            setHasFixedSize(true)
 //            layoutManager = LinearLayoutManager(this@MainActivity)
@@ -122,45 +115,53 @@ class MainActivity : AppCompatActivity(), CardGestureListeners, View.OnClickList
     }
 
     override fun onItemShow(position: Int, model: Any) {
-        Log.v("onItemShow","$position pos")
-        if(modelList.size==position+1){
-            ivEmpty.visibility = VISIBLE
-        }else{
-            ivEmpty.visibility = GONE
+        Log.v("onItemShow", "$position pos")
+        if (modelList.size == position + 1) {
+            llEmptyStack.visibility = VISIBLE
+        } else {
+            llEmptyStack.visibility = GONE
         }
-        if(progressIndicator.progress<=position&&position>0){
-            progressIndicator.progress = position+1
+        if (progressIndicator.progress <= position && position > 0) {
+            progressIndicator.progress = position + 1
         }
 
 
     }
 
     override fun onSwipeCancel(position: Int, model: Any) {
-
+//        cardContainer?.removeAllViews()
+//
+//        //modelList = subDataList
+//        adapter = MainViewAdapter(modelList, this)
+//        adapter?.let {
+//            cardContainer.setAdapter(it)
+//        }
+//        cardContainer.cardContainer
     }
+
     override fun onSwipeCompleted() {
 
     }
 
     override fun onClick(v: View?) {
-        when(v?.id){
-            R.id.iv_prev->{
+        when (v?.id) {
+            R.id.iv_prev -> {
 
-                progressIndicator.progress = (progressIndicator.progress+1)
+                progressIndicator.progress = (progressIndicator.progress + 1)
                 adapter?.left()
             }
 
-            R.id.iv_next->{
-                progressIndicator.progress = (progressIndicator.progress+1)
+            R.id.iv_next -> {
+                progressIndicator.progress = (progressIndicator.progress + 1)
                 adapter?.right()
             }
 
-            R.id.iv_restart->{
-               // it.pulse()
-               // modelList.shuffle()
+            R.id.iv_restart -> {
+                // it.pulse()
+                // modelList.shuffle()
 
                 adapter = MainViewAdapter(modelList, this)
-                adapter?.let{
+                adapter?.let {
                     cardContainer.setAdapter(it)
                     progressIndicator.progress = 0
                 }
